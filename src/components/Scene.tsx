@@ -1,6 +1,7 @@
 import React, { useRef, useState } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import * as THREE from "three";
+import { Text } from "@react-three/drei";
 
 interface Data {
   id: string;
@@ -32,7 +33,7 @@ export const Scene = ({ data }: { data: Data[] }) => {
         }}
       >
         <Canvas camera={{ position: [0, 0, 10], fov: 50 }} shadows>
-          <ambientLight intensity={0.5} castShadow />
+          <ambientLight intensity={1.5} castShadow />
           <pointLight position={[10, 10, 10]} castShadow />
           <Spinner setSelectedColor={setSelectedColor} data={data} />
           {/* CAMERA */}
@@ -60,11 +61,12 @@ export const Scene = ({ data }: { data: Data[] }) => {
               padding: "10px 15px",
               color: "#fff",
               backgroundColor: "rgba(0, 0, 0, 0.8)",
+              background: "rgba(0, 0, 0, 0.8)",
               border: "1px solid #fff",
               boxShadow: "0 0 10px rgba(0, 0, 0, 0.5)",
               borderRadius: "5px",
               fontSize: "50px",
-              fontFamily: "Arial, sans-serif",
+              fontFamily: "Roboto, sans-serif",
             }}
           >
             {colorToData(selectedColor)?.topic}
@@ -90,8 +92,15 @@ const Spinner = ({ setSelectedColor, data }: SpinnerProps) => {
   const spinStartTime = useRef<number | null>(null);
   const spinDuration = useRef<number>(0);
 
+  const spinAudio = useRef(new Audio("/fidget-spinner.wav"));
+
   const handleClick = () => {
     if (!spin) {
+      // Play the sound effect
+      spinAudio.current.currentTime = 0; // Reset the sound to the beginning
+      spinAudio.current.play();
+
+      // Start spinning
       setSpin(true);
       spinStartTime.current = performance.now();
       spinDuration.current = Math.random() * 3000 + 5000; // 3 to 5 seconds
@@ -153,7 +162,7 @@ const Spinner = ({ setSelectedColor, data }: SpinnerProps) => {
   });
 
   return (
-    <group onClick={handleClick}>
+    <group onClick={handleClick} position={[0, 0, -6]}>
       {/* Rotating Cube */}
       <mesh
         ref={rotatingCube}
@@ -178,22 +187,31 @@ const Spinner = ({ setSelectedColor, data }: SpinnerProps) => {
               position={[x, y, 0.1]} // Adjusted height for better visual balance
               rotation={[0, 0, Math.PI / 2 + angle]}
             >
-              <cylinderGeometry args={[1.5, 2, 1, 32]} />
+              {/* Base radius, height, sides */}
+              <coneGeometry args={[2, 6, 4, 1]} />
               <meshStandardMaterial color={data[i].color} emissive={"black"} />
             </mesh>
+            {/* <Text color={"#000"} fontSize={0.5} position={[0, 0, 3.5]}> */}
+            <Text
+              color={"#000"}
+              // outline the text
+              outlineWidth={0.01}
+              strokeColor={"#fffff60"}
+              strokeWidth={0.2}
+              fontSize={0.4}
+              position={[x, y, 3.5]}
+              rotation={[0, 0, Math.PI + angle]}
+            >
+              {data[i].topic}
+            </Text>
           </group>
         );
       })}
 
-      <mesh position={[0, 0, -1.5]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[3.5, 4, 0.01, 64]} />
-        <meshStandardMaterial color={"#fff"} transparent opacity={0.7} />
-      </mesh>
-
-      <mesh position={[0, 0, 2.5]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[1.5, 2.0, 0.01, 64]} />
+      {/* <mesh position={[0, 0, 2.5]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[1.5, 0.15, 0.01, 64]} />
         <meshStandardMaterial color={"#000"} />
-      </mesh>
+      </mesh> */}
     </group>
   );
 };
